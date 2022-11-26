@@ -138,7 +138,7 @@ func saveData(logger Logger) func(http.ResponseWriter, *http.Request) {
 
 		f, err := os.OpenFile(DataFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0640)
 		if err != nil {
-			log.Fatal(err)
+			http.Error(w, fmt.Sprintf("Error: opening database file: %v", err), http.StatusInternalServerError)
 		}
 		if _, err := f.Write(append(data, "\n"...)); err != nil {
 			f.Close() // ignore error; Write error takes precedence
