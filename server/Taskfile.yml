@@ -1,0 +1,58 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  copyClient:
+    desc: >-
+      Copies all public client files (index.html and all assets like JS and CSS)
+      to the Go package public so it can use go:embed there.
+    cmds:
+      - rm -rf public/files
+      - mkdir -p public/files
+      - cp ../client/index.html public/files/index.html
+      - cp -r ../client/assets public/files/
+    sources:
+      - ../client/index.html
+      - ../client/assets/**/*
+
+  test:
+    desc: Runs all tests.
+    cmds:
+      - go test ./...
+    sources:
+      - ./**/*.go
+      - public/files/**/*.*
+
+  vet:
+    desc: >-
+      Runs vet (https://pkg.go.dev/cmd/vet), which examines Go source code and
+      reports suspicious constructs.
+    cmds:
+      - go vet ./...
+    sources:
+      - ./**/*.go
+
+  staticcheck:
+    desc: >-
+      Runs Staticcheck (https://staticcheck.io/), the state of the art linter
+      for the Go programming language.
+    cmds:
+      - staticcheck -checks all ./...
+    sources:
+      - ./**/*.go
+
+  build:
+    desc: Compiles all Go files to our binary "server".
+    deps:
+      - copyClient
+      - test
+      - vet
+      - staticcheck
+    cmds:
+      - go build
+    sources:
+      - ./**/*.go
+      - public/files/**/*.*
+    generates:
+      - server

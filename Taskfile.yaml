@@ -1,0 +1,19 @@
+# https://taskfile.dev
+
+version: '3'
+
+includes:
+  client:
+    taskfile: ./client
+    dir: ./client
+
+  server:
+    taskfile: ./server
+    dir: ./server
+
+tasks:
+  default:
+    desc: Runs the tasks client:build and server:build.
+    cmds:
+      - task: client:build
+      - task: server:build

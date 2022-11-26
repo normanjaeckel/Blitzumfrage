@@ -1,0 +1,6 @@
+# Patterns of intentionally untracked files that Git should ignore
+
+.task/
+public/files
+server
+data.jsonl
