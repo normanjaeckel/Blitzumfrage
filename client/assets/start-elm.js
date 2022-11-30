@@ -1,5 +1,6 @@
 (function () {
-    var app = Elm.Main.init({
+    "use strict";
+    Elm.Main.init({
         node: document.getElementById("app")
     });
-}())
+}());
