@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/normanjaeckel/Blitzumfrage/server/public"
@@ -16,9 +17,10 @@ import (
 )
 
 const (
-	Host     string = "localhost"
-	Port     int    = 8000
-	DataFile        = "data.jsonl"
+	Host            string = "localhost"
+	Port            int    = 8000
+	DataFile               = "data.jsonl"
+	DataFileMaxSize        = 1000000
 )
 
 type Logger interface {
@@ -69,9 +71,11 @@ func onSignals(log Logger, cancel context.CancelFunc) {
 
 // start initiates the HTTP server and lets it listen on the given address.
 func start(ctx context.Context, logger Logger, addr string) error {
+	mux := sync.Mutex{}
+
 	s := &http.Server{
 		Addr:    addr,
-		Handler: handler(logger),
+		Handler: handler(logger, &mux),
 	}
 
 	go func() {
@@ -98,44 +102,61 @@ type payload struct {
 	Amount int    `json:"amount" validate:"required,min=0,max=1000"`
 }
 
-func handler(logger Logger) http.Handler {
-	mux := http.NewServeMux()
+func handler(logger Logger, mux *sync.Mutex) http.Handler {
+	serveMux := http.NewServeMux()
 
 	// Save data
-	mux.HandleFunc("/save", saveData(logger))
+	serveMux.HandleFunc("/save", saveData(logger, mux))
 
 	// Root
-	mux.Handle("/", public.Files())
+	serveMux.Handle("/", public.Files())
 
-	return mux
+	return serveMux
 }
 
-func saveData(logger Logger) func(http.ResponseWriter, *http.Request) {
+func saveData(logger Logger, mux *sync.Mutex) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Setup mutual exclusion lock
+		mux.Lock()
+		defer mux.Unlock()
+
+		// Check filesize
+		fileInfo, err := os.Stat(DataFile)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error: retrieving database file information: %v", err), http.StatusInternalServerError)
+			return
+		}
+		if fileInfo.Size() > DataFileMaxSize {
+			http.Error(w, "Error: database file is too large", http.StatusInternalServerError)
+			return
+		}
+
+		// Read body
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Error: reading request body: %v", err), http.StatusBadRequest)
 			return
 		}
 
+		// Decode and validate body
 		p := payload{}
-
 		if err := json.Unmarshal(body, &p); err != nil {
 			http.Error(w, fmt.Sprintf("Error: decoding request: %v", err), http.StatusBadRequest)
 			return
 		}
-
 		v := validator.New()
 		if err := v.Struct(p); err != nil {
 			http.Error(w, fmt.Sprintf("Error: invalid request: %v", err), http.StatusBadRequest)
 			return
 		}
 
+		// Encode data
 		data, err := json.Marshal(p)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Error: encoding request: %v", err), http.StatusInternalServerError)
 		}
 
+		// Write data to file
 		f, err := os.OpenFile(DataFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0640)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Error: opening database file: %v", err), http.StatusInternalServerError)
@@ -147,6 +168,7 @@ func saveData(logger Logger) func(http.ResponseWriter, *http.Request) {
 		if err := f.Close(); err != nil {
 			http.Error(w, fmt.Sprintf("Error: closing database file: %v", err), http.StatusInternalServerError)
 		}
+
 		logger.Printf("Request successfully processed.")
 	}
 }
