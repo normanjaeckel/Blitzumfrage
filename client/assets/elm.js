@@ -6479,7 +6479,7 @@ var $author$project$Main$amountForm = function (model) {
 											$elm$html$Html$Attributes$placeholder('Betrag'),
 											A2($elm$html$Html$Attributes$attribute, 'aria-label', 'Betrag'),
 											$elm$html$Html$Attributes$required(true),
-											$elm$html$Html$Attributes$min('150'),
+											$elm$html$Html$Attributes$min('50'),
 											$elm$html$Html$Attributes$max('1000'),
 											$elm$html$Html$Events$onInput(
 											A2(

@@ -176,7 +176,7 @@ amountForm model =
                     , placeholder "Betrag"
                     , attribute "aria-label" "Betrag"
                     , required True
-                    , Html.Attributes.min "150"
+                    , Html.Attributes.min "50"
                     , Html.Attributes.max "1000"
                     , onInput (String.toInt >> Maybe.withDefault 0 >> Amount)
                     , value <| String.fromInt model.amount
