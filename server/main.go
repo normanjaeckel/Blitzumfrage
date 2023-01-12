@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -126,14 +127,9 @@ func saveData(logger Logger, mux *sync.Mutex) func(http.ResponseWriter, *http.Re
 		mux.Lock()
 		defer mux.Unlock()
 
-		// Check filesize
-		fileInfo, err := os.Stat(DataFile)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Error: retrieving database file information: %v", err), http.StatusInternalServerError)
-			return
-		}
-		if fileInfo.Size() > DataFileMaxSize {
-			http.Error(w, "Error: database file is too large", http.StatusInternalServerError)
+		// Check filesize if file exists
+		if msg := fileIsTooLarge(DataFile); msg != "" {
+			http.Error(w, msg, http.StatusInternalServerError)
 			return
 		}
 
@@ -180,4 +176,18 @@ func saveData(logger Logger, mux *sync.Mutex) func(http.ResponseWriter, *http.Re
 
 		logger.Printf("Request successfully processed.")
 	}
+}
+
+func fileIsTooLarge(file string) string {
+	fileInfo, err := os.Stat(DataFile)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return ""
+		}
+		return fmt.Sprintf("Error: retrieving database file information: %v", err)
+	}
+	if fileInfo.Size() > DataFileMaxSize {
+		return "Error: database file is too large"
+	}
+	return ""
 }
