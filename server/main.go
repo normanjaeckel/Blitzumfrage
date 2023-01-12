@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/normanjaeckel/Blitzumfrage/server/public"
@@ -102,6 +103,11 @@ type payload struct {
 	Amount int    `json:"amount" validate:"required,min=0,max=1000"`
 }
 
+type payloadWithTimestamp struct {
+	payload
+	Timestamp string `json:"timestamp"`
+}
+
 func handler(logger Logger, mux *sync.Mutex) http.Handler {
 	serveMux := http.NewServeMux()
 
@@ -150,8 +156,11 @@ func saveData(logger Logger, mux *sync.Mutex) func(http.ResponseWriter, *http.Re
 			return
 		}
 
+		// Add timestamp
+		pp := payloadWithTimestamp{p, time.Now().Format(time.RFC3339)}
+
 		// Encode data
-		data, err := json.Marshal(p)
+		data, err := json.Marshal(pp)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Error: encoding request: %v", err), http.StatusInternalServerError)
 		}
