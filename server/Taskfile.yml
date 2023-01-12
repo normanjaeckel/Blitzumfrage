@@ -42,13 +42,8 @@ tasks:
     sources:
       - ./**/*.go
 
-  build:
-    desc: Compiles all Go files to our binary "server".
-    deps:
-      - copyClient
-      - test
-      - vet
-      - staticcheck
+  goBuild:
+    desc: Compiles all Go files without any preparation.
     cmds:
       - go build
     sources:
@@ -56,3 +51,15 @@ tasks:
       - public/files/**/*.*
     generates:
       - server
+
+  build:
+    desc: >-
+      Compiles all Go files to our binary "server" after copying client files
+      and running tests and checks.
+    deps:
+      - copyClient
+      - test
+      - vet
+      - staticcheck
+    cmds:
+      - task: goBuild
