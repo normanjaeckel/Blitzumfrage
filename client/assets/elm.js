@@ -5330,16 +5330,16 @@ var $elm$core$Task$perform = F2(
 var $elm$browser$Browser$element = _Browser_element;
 var $author$project$Main$Form = F3(
 	function (name, child, amount) {
-		return {F: amount, G: child, H: name};
+		return {G: amount, H: child, I: name};
 	});
-var $author$project$Main$PageOne = 0;
+var $author$project$Main$MainPage = {$: 0};
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Main$init = function (_v0) {
 	return _Utils_Tuple2(
 		{
 			o: A3($author$project$Main$Form, '', '', 150),
-			I: 0
+			B: $author$project$Main$MainPage
 		},
 		$elm$core$Platform$Cmd$none);
 };
@@ -5348,7 +5348,10 @@ var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
 var $author$project$Main$Done = function (a) {
 	return {$: 2, a: a};
 };
-var $author$project$Main$PageTwo = 1;
+var $author$project$Main$PageError = function (a) {
+	return {$: 2, a: a};
+};
+var $author$project$Main$PageSuccess = {$: 1};
 var $elm$http$Http$BadStatus_ = F2(
 	function (a, b) {
 		return {$: 3, a: a, b: b};
@@ -6157,13 +6160,13 @@ var $author$project$Main$toJSON = function (f) {
 			[
 				_Utils_Tuple2(
 				'name',
-				$elm$json$Json$Encode$string(f.H)),
+				$elm$json$Json$Encode$string(f.I)),
 				_Utils_Tuple2(
 				'child',
-				$elm$json$Json$Encode$string(f.G)),
+				$elm$json$Json$Encode$string(f.H)),
 				_Utils_Tuple2(
 				'amount',
-				$elm$json$Json$Encode$int(f.F))
+				$elm$json$Json$Encode$int(f.G))
 			]));
 };
 var $author$project$Main$update = F2(
@@ -6181,7 +6184,7 @@ var $author$project$Main$update = F2(
 								{
 									o: _Utils_update(
 										f,
-										{H: name})
+										{I: name})
 								}),
 							$elm$core$Platform$Cmd$none);
 					case 1:
@@ -6192,7 +6195,7 @@ var $author$project$Main$update = F2(
 								{
 									o: _Utils_update(
 										f,
-										{G: child})
+										{H: child})
 								}),
 							$elm$core$Platform$Cmd$none);
 					default:
@@ -6203,7 +6206,7 @@ var $author$project$Main$update = F2(
 								{
 									o: _Utils_update(
 										f,
-										{F: amount})
+										{G: amount})
 								}),
 							$elm$core$Platform$Cmd$none);
 				}
@@ -6218,11 +6221,23 @@ var $author$project$Main$update = F2(
 							aT: '/save'
 						}));
 			default:
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{I: 1}),
-					$elm$core$Platform$Cmd$none);
+				var result = msg.a;
+				if (!result.$) {
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{B: $author$project$Main$PageSuccess}),
+						$elm$core$Platform$Cmd$none);
+				} else {
+					var e = result.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								B: $author$project$Main$PageError(e)
+							}),
+						$elm$core$Platform$Cmd$none);
+				}
 		}
 	});
 var $elm$html$Html$Attributes$stringProperty = F2(
@@ -6269,7 +6284,6 @@ var $author$project$Main$classes = function (s) {
 };
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
-var $elm$html$Html$main_ = _VirtualDom_node('main');
 var $author$project$Main$Amount = function (a) {
 	return {$: 2, a: a};
 };
@@ -6296,6 +6310,7 @@ var $elm$html$Html$form = _VirtualDom_node('form');
 var $elm$html$Html$input = _VirtualDom_node('input');
 var $elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
 var $elm$html$Html$map = $elm$virtual_dom$VirtualDom$map;
+var $elm$html$Html$Attributes$max = $elm$html$Html$Attributes$stringProperty('max');
 var $elm$html$Html$Attributes$min = $elm$html$Html$Attributes$stringProperty('min');
 var $elm$html$Html$Events$alwaysStop = function (x) {
 	return _Utils_Tuple2(x, true);
@@ -6415,7 +6430,7 @@ var $author$project$Main$amountForm = function (model) {
 											A2($elm$html$Html$Attributes$attribute, 'aria-label', 'Name des Elternteils'),
 											$elm$html$Html$Attributes$required(true),
 											$elm$html$Html$Events$onInput($author$project$Main$Name),
-											$elm$html$Html$Attributes$value(model.H)
+											$elm$html$Html$Attributes$value(model.I)
 										]),
 									_List_Nil))
 							])),
@@ -6440,7 +6455,7 @@ var $author$project$Main$amountForm = function (model) {
 											A2($elm$html$Html$Attributes$attribute, 'aria-label', 'Name des Kindes'),
 											$elm$html$Html$Attributes$required(true),
 											$elm$html$Html$Events$onInput($author$project$Main$Child),
-											$elm$html$Html$Attributes$value(model.G)
+											$elm$html$Html$Attributes$value(model.H)
 										]),
 									_List_Nil))
 							])),
@@ -6465,6 +6480,7 @@ var $author$project$Main$amountForm = function (model) {
 											A2($elm$html$Html$Attributes$attribute, 'aria-label', 'Betrag'),
 											$elm$html$Html$Attributes$required(true),
 											$elm$html$Html$Attributes$min('150'),
+											$elm$html$Html$Attributes$max('1000'),
 											$elm$html$Html$Events$onInput(
 											A2(
 												$elm$core$Basics$composeR,
@@ -6474,7 +6490,7 @@ var $author$project$Main$amountForm = function (model) {
 													$elm$core$Maybe$withDefault(0),
 													$author$project$Main$Amount))),
 											$elm$html$Html$Attributes$value(
-											$elm$core$String$fromInt(model.F))
+											$elm$core$String$fromInt(model.G))
 										]),
 									_List_Nil)),
 								A2(
@@ -6509,7 +6525,7 @@ var $author$project$Main$amountForm = function (model) {
 			]));
 };
 var $elm$html$Html$p = _VirtualDom_node('p');
-var $author$project$Main$pageOne = function (f) {
+var $author$project$Main$mainPage = function (f) {
 	return A2(
 		$elm$html$Html$div,
 		_List_Nil,
@@ -6542,7 +6558,34 @@ var $author$project$Main$pageOne = function (f) {
 				$author$project$Main$amountForm(f)
 			]));
 };
-var $author$project$Main$pageTwo = A2(
+var $elm$html$Html$main_ = _VirtualDom_node('main');
+var $author$project$Main$pageError = function (e) {
+	var s = function () {
+		switch (e.$) {
+			case 0:
+				var u = e.a;
+				return 'bad url (' + (u + ')');
+			case 1:
+				return 'timeout';
+			case 2:
+				return 'network error';
+			case 3:
+				var i = e.a;
+				return 'bad status (' + ($elm$core$String$fromInt(i) + ')');
+			default:
+				var b = e.a;
+				return 'bad body (' + (b + ')');
+		}
+	}();
+	return A2(
+		$elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				$elm$html$Html$text('Fehler. Versuchen Sie es noch einmal oder geben Sie auf (' + (s + ').'))
+			]));
+};
+var $author$project$Main$pageSuccess = A2(
 	$elm$html$Html$div,
 	_List_Nil,
 	_List_fromArray(
@@ -6574,11 +6617,15 @@ var $author$project$Main$view = function (model) {
 								$elm$html$Html$text('Schnelle Umfrage für Ihren Klassenelternsprecher')
 							])),
 						function () {
-						var _v0 = model.I;
-						if (!_v0) {
-							return $author$project$Main$pageOne(model.o);
-						} else {
-							return $author$project$Main$pageTwo;
+						var _v0 = model.B;
+						switch (_v0.$) {
+							case 0:
+								return $author$project$Main$mainPage(model.o);
+							case 1:
+								return $author$project$Main$pageSuccess;
+							default:
+								var e = _v0.a;
+								return $author$project$Main$pageError(e);
 						}
 					}()
 					]))

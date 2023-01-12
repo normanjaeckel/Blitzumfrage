@@ -36,13 +36,14 @@ type alias Form =
 
 
 type Page
-    = PageOne
-    | PageTwo
+    = MainPage
+    | PageSuccess
+    | PageError Http.Error
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { form = Form "" "" 150, page = PageOne }, Cmd.none )
+    ( { form = Form "" "" 150, page = MainPage }, Cmd.none )
 
 
 
@@ -88,8 +89,13 @@ update msg model =
                 }
             )
 
-        Done _ ->
-            ( { model | page = PageTwo }, Cmd.none )
+        Done result ->
+            case result of
+                Ok _ ->
+                    ( { model | page = PageSuccess }, Cmd.none )
+
+                Err e ->
+                    ( { model | page = PageError e }, Cmd.none )
 
 
 toJSON : Form -> E.Value
@@ -111,17 +117,20 @@ view model =
         [ main_ []
             [ h1 [ class "pb-5" ] [ text "Schnelle Umfrage für Ihren Klassenelternsprecher" ]
             , case model.page of
-                PageOne ->
-                    pageOne model.form
+                MainPage ->
+                    mainPage model.form
 
-                PageTwo ->
-                    pageTwo
+                PageSuccess ->
+                    pageSuccess
+
+                PageError e ->
+                    pageError e
             ]
         ]
 
 
-pageOne : Form -> Html Msg
-pageOne f =
+mainPage : Form -> Html Msg
+mainPage f =
     div []
         [ p [] [ text "Liebe Eltern der Klasse 2a," ]
         , p [] [ text "danke, dass Sie sich kurz die Zeit nehmen und das folgende Formular ausfüllen." ]
@@ -168,6 +177,7 @@ amountForm model =
                     , attribute "aria-label" "Betrag"
                     , required True
                     , Html.Attributes.min "150"
+                    , Html.Attributes.max "1000"
                     , onInput (String.toInt >> Maybe.withDefault 0 >> Amount)
                     , value <| String.fromInt model.amount
                     ]
@@ -180,9 +190,33 @@ amountForm model =
         ]
 
 
-pageTwo : Html Msg
-pageTwo =
+pageSuccess : Html Msg
+pageSuccess =
     div [] [ text "Das war's schon. Vielen Dank!" ]
+
+
+pageError : Http.Error -> Html Msg
+pageError e =
+    let
+        s : String
+        s =
+            case e of
+                Http.BadUrl u ->
+                    "bad url (" ++ u ++ ")"
+
+                Http.Timeout ->
+                    "timeout"
+
+                Http.NetworkError ->
+                    "network error"
+
+                Http.BadStatus i ->
+                    "bad status (" ++ String.fromInt i ++ ")"
+
+                Http.BadBody b ->
+                    "bad body (" ++ b ++ ")"
+    in
+    div [] [ text <| "Fehler. Versuchen Sie es noch einmal oder geben Sie auf (" ++ s ++ ")." ]
 
 
 {-| This helper takes a string with class names separated by one whitespace. All
