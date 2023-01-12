@@ -6390,7 +6390,7 @@ var $author$project$Main$amountForm = function (model) {
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('col-4')
+						$elm$html$Html$Attributes$class('col-md-4')
 					]),
 				_List_fromArray(
 					[

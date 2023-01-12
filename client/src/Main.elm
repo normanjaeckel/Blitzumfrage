@@ -133,7 +133,7 @@ pageOne f =
 amountForm : Form -> Html Msg
 amountForm model =
     form [ class "mb-3", onSubmit Save ]
-        [ div [ class "col-4" ]
+        [ div [ class "col-md-4" ]
             [ div [ class "mb-3" ]
                 [ input
                     [ class "form-control"
